@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Plus, X, Target, ChevronUp, ChevronDown, Settings, BarChart3, Shield, Edit2, Trash2, Upload, RotateCcw, DollarSign, Megaphone, Save, Loader2, FileText, Scale, Briefcase, ShoppingCart, GraduationCap, Building2, Phone, UserCheck, Filter as FilterIcon, Bell, Volume2 } from "lucide-react";
+import { Plus, X, Target, ChevronUp, ChevronDown, Settings, BarChart3, Shield, Edit2, Trash2, Upload, RotateCcw, DollarSign, Megaphone, Save, Loader2, FileText, Scale, Briefcase, ShoppingCart, GraduationCap, Building2, Phone, UserCheck, Filter as FilterIcon, Bell, Volume2, Search } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { supabase } from "@/lib/supabase";
 
@@ -86,6 +86,7 @@ export default function CRM(){
   const[closerSounds,setCloserSounds]=useState<Record<number,"sino"|"buzina">>(()=>{if(typeof window!=="undefined"){try{const s=localStorage.getItem("melville_closer_sounds");if(s)return JSON.parse(s);}catch{}}return{};});
   const celebrationRef=useRef<HTMLAudioElement|null>(null);
   const[metaMesAdv,setMetaMesAdv]=useState(65);const[metaMesEdu,setMetaMesEdu]=useState(20);const[metaEdit,setMetaEdit]=useState("65");const[tf,setTf]=useState(0);const[procFilter,setProcFilter]=useState<"semana"|"mes"|"ano">("mes");const[fatAno,setFatAno]=useState(2026);const[selFunil,setSelFunil]=useState(0);
+  const[consultaBusca,setConsultaBusca]=useState("");const[consultaDataDe,setConsultaDataDe]=useState("");const[consultaDataAte,setConsultaDataAte]=useState("");const[consultaStatus,setConsultaStatus]=useState<"todos"|"pendente"|"qualificado"|"desqualificado">("todos");const[consultaProcStatus,setConsultaProcStatus]=useState<"todos"|"em_andamento"|"vendido">("todos");
   const fileRefs=useRef<Record<number,HTMLInputElement|null>>({});
 
   const teams=allTeams.filter(t=>t.divisao===dv);const products=allProducts.filter(p=>p.divisao===dv);const cls=allCls.filter(c=>c.divisao===dv);const camps=allCamps.filter(c=>c.divisao===dv);const procs=allProcs.filter(p=>p.divisao===dv);const funis=allFunis.filter(f=>f.divisao===dv);
@@ -165,7 +166,7 @@ export default function CRM(){
   const filteredProcs=filterProcs(procs);
 
   // Sub tabs by division (config only for gestor)
-  const allSubTabs=dv==="advogados"?[{id:"painel",label:"PAINEL",icon:BarChart3},{id:"faturamento",label:"FATURAMENTO",icon:DollarSign},{id:"agendamentos",label:"AGENDAMENTOS",icon:Phone},{id:"fechamento",label:"FECHAMENTO",icon:Target},{id:"clientes",label:"CLIENTES",icon:UserCheck},{id:"meta_ads",label:"META ADS",icon:Megaphone},{id:"produtos",label:"PRODUTOS",icon:Shield},{id:"processos",label:"PROCESSOS",icon:Scale},{id:"config",label:"CONFIG",icon:Settings}]:[{id:"painel",label:"PAINEL",icon:BarChart3},{id:"faturamento",label:"FATURAMENTO",icon:DollarSign},{id:"agendamentos",label:"AGENDAMENTOS",icon:Phone},{id:"fechamento",label:"FECHAMENTO",icon:Target},{id:"clientes",label:"CLIENTES",icon:UserCheck},{id:"funis",label:"FUNIS",icon:FilterIcon},{id:"produtos",label:"PRODUTOS",icon:Shield},{id:"config",label:"CONFIG",icon:Settings}];
+  const allSubTabs=dv==="advogados"?[{id:"painel",label:"PAINEL",icon:BarChart3},{id:"faturamento",label:"FATURAMENTO",icon:DollarSign},{id:"agendamentos",label:"AGENDAMENTOS",icon:Phone},{id:"fechamento",label:"FECHAMENTO",icon:Target},{id:"clientes",label:"CLIENTES",icon:UserCheck},{id:"consulta",label:"CONSULTA",icon:Search},{id:"meta_ads",label:"META ADS",icon:Megaphone},{id:"produtos",label:"PRODUTOS",icon:Shield},{id:"processos",label:"PROCESSOS",icon:Scale},{id:"config",label:"CONFIG",icon:Settings}]:[{id:"painel",label:"PAINEL",icon:BarChart3},{id:"faturamento",label:"FATURAMENTO",icon:DollarSign},{id:"agendamentos",label:"AGENDAMENTOS",icon:Phone},{id:"fechamento",label:"FECHAMENTO",icon:Target},{id:"clientes",label:"CLIENTES",icon:UserCheck},{id:"consulta",label:"CONSULTA",icon:Search},{id:"funis",label:"FUNIS",icon:FilterIcon},{id:"produtos",label:"PRODUTOS",icon:Shield},{id:"config",label:"CONFIG",icon:Settings}];
   const subTabs=isGestor?allSubTabs:allSubTabs.filter(t=>t.id!=="config");
 
   if(!user)return<div style={{fontFamily:"'DM Sans',sans-serif",background:C.bg,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/><div style={{background:C.bgCard,border:`2px solid ${C.border}`,borderRadius:24,padding:48,width:"100%",maxWidth:420,textAlign:"center"}}><div style={{width:70,height:70,borderRadius:16,background:`linear-gradient(135deg,${C.gold},${C.goldDark})`,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Cinzel',serif",fontWeight:900,fontSize:32,color:C.bg,margin:"0 auto 20px",boxShadow:`0 0 40px ${C.gold}30`}}>M</div><div style={{fontFamily:"'Cinzel',serif",fontWeight:800,fontSize:24,color:C.gold,letterSpacing:3,marginBottom:8}}>GRUPO MELVILLE</div><div style={{fontSize:14,color:C.textMuted,marginBottom:32}}>Painel de Performance</div><div style={{marginBottom:16}}><input placeholder="Email" type="email" value={loginEmail} onChange={e=>setLoginEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doLogin()} style={{width:"100%",padding:"14px 18px",background:C.bgInput,border:`1px solid ${C.border}`,borderRadius:10,color:C.text,fontSize:18,outline:"none",boxSizing:"border-box",fontFamily:"'DM Sans',sans-serif",marginBottom:12}}/><input placeholder="Senha" type="password" value={loginSenha} onChange={e=>setLoginSenha(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doLogin()} style={{width:"100%",padding:"14px 18px",background:C.bgInput,border:`1px solid ${C.border}`,borderRadius:10,color:C.text,fontSize:18,outline:"none",boxSizing:"border-box",fontFamily:"'DM Sans',sans-serif"}}/></div>{loginErr&&<div style={{color:C.red,fontSize:14,marginBottom:12}}>{loginErr}</div>}<button onClick={doLogin} disabled={loggingIn} style={{width:"100%",padding:"16px",borderRadius:12,border:"none",background:`linear-gradient(135deg,${C.gold},${C.goldDark})`,color:C.bg,fontSize:20,fontWeight:800,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>{loggingIn?"Entrando...":"Entrar"}</button></div></div>;
@@ -355,6 +356,59 @@ export default function CRM(){
         </div>})}
         {visibleClients.length===0&&<div style={{background:C.bgCard,border:`2px solid ${C.border}`,borderRadius:20,padding:40,textAlign:"center",color:C.textMuted}}>Nenhum cliente registrado neste mês.</div>}
         </>})()}
+      </div>}
+
+      {/* ═══ CONSULTA ═══ */}
+      {tab==="consulta"&&<div style={{animation:"slideUp .4s ease"}}><h2 style={{fontFamily:"'Cinzel',serif",fontSize:28,fontWeight:900,color:ac,margin:"0 0 24px",textTransform:"uppercase",letterSpacing:3}}>Consulta</h2>
+        {/* FILTROS */}
+        <div style={{background:C.bgCard,border:`2px solid ${C.border}`,borderRadius:20,padding:24,marginBottom:24}}>
+          <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr",gap:16,marginBottom:16}}>
+            <div><label style={{fontSize:13,color:C.textMuted,textTransform:"uppercase",letterSpacing:1,marginBottom:6,display:"block"}}>Buscar por nome</label><div style={{display:"flex",alignItems:"center",gap:8,background:C.bgInput,border:`1px solid ${C.border}`,borderRadius:8,padding:"0 12px"}}><Search size={18} color={C.textMuted}/><input placeholder="Nome do cliente..." value={consultaBusca} onChange={e=>setConsultaBusca(e.target.value)} style={{width:"100%",padding:"12px 0",background:"transparent",border:"none",color:C.text,fontSize:18,outline:"none",fontFamily:"'DM Sans',sans-serif"}}/>{consultaBusca&&<button onClick={()=>setConsultaBusca("")} style={{background:"none",border:"none",cursor:"pointer",color:C.textMuted}}><X size={16}/></button>}</div></div>
+            <div><label style={{fontSize:13,color:C.textMuted,textTransform:"uppercase",letterSpacing:1,marginBottom:6,display:"block"}}>Data início</label><input type="date" value={consultaDataDe} onChange={e=>setConsultaDataDe(e.target.value)} style={{width:"100%",padding:"12px 16px",background:C.bgInput,border:`1px solid ${C.border}`,borderRadius:8,color:C.text,fontSize:16,fontFamily:"'DM Sans',sans-serif",outline:"none",boxSizing:"border-box" as const}}/></div>
+            <div><label style={{fontSize:13,color:C.textMuted,textTransform:"uppercase",letterSpacing:1,marginBottom:6,display:"block"}}>Data fim</label><input type="date" value={consultaDataAte} onChange={e=>setConsultaDataAte(e.target.value)} style={{width:"100%",padding:"12px 16px",background:C.bgInput,border:`1px solid ${C.border}`,borderRadius:8,color:C.text,fontSize:16,fontFamily:"'DM Sans',sans-serif",outline:"none",boxSizing:"border-box" as const}}/></div>
+          </div>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
+            <span style={{fontSize:13,color:C.textDim,textTransform:"uppercase",letterSpacing:2}}>Status cliente:</span>
+            {(["todos","pendente","qualificado","desqualificado"] as const).map(s=><button key={s} onClick={()=>setConsultaStatus(s)} style={{padding:"6px 16px",borderRadius:20,fontSize:14,fontWeight:700,background:consultaStatus===s?`${s==="qualificado"?C.green:s==="desqualificado"?C.red:s==="pendente"?C.orange:ac}20`:"transparent",border:`2px solid ${consultaStatus===s?(s==="qualificado"?C.green:s==="desqualificado"?C.red:s==="pendente"?C.orange:ac):C.border}`,color:consultaStatus===s?(s==="qualificado"?C.green:s==="desqualificado"?C.red:s==="pendente"?C.orange:ac):C.textMuted,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",textTransform:"capitalize"}}>{s}</button>)}
+            <span style={{fontSize:13,color:C.textDim,textTransform:"uppercase",letterSpacing:2,marginLeft:16}}>Processo:</span>
+            {(["todos","em_andamento","vendido"] as const).map(s=><button key={s} onClick={()=>setConsultaProcStatus(s)} style={{padding:"6px 16px",borderRadius:20,fontSize:14,fontWeight:700,background:consultaProcStatus===s?`${s==="vendido"?C.green:s==="em_andamento"?C.blue3:ac}20`:"transparent",border:`2px solid ${consultaProcStatus===s?(s==="vendido"?C.green:s==="em_andamento"?C.blue3:ac):C.border}`,color:consultaProcStatus===s?(s==="vendido"?C.green:s==="em_andamento"?C.blue3:ac):C.textMuted,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",textTransform:"capitalize"}}>{s==="em_andamento"?"Em andamento":s}</button>)}
+            {(consultaBusca||consultaDataDe||consultaDataAte||consultaStatus!=="todos"||consultaProcStatus!=="todos")&&<button onClick={()=>{setConsultaBusca("");setConsultaDataDe("");setConsultaDataAte("");setConsultaStatus("todos");setConsultaProcStatus("todos");}} style={{padding:"6px 16px",borderRadius:20,fontSize:14,fontWeight:700,background:`${C.red}15`,border:`2px solid ${C.red}40`,color:C.red,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",marginLeft:8}}>Limpar filtros</button>}
+          </div>
+        </div>
+        {/* RESULTADOS */}
+        {(()=>{
+          const cliDiv=allClientes.filter(c=>c.divisao===dv);
+          let results=cliDiv;
+          if(consultaBusca){const q=consultaBusca.toLowerCase();results=results.filter(c=>c.nomeCliente.toLowerCase().includes(q)||c.cpf.includes(q)||c.telefone.includes(q));}
+          if(consultaDataDe){const de=new Date(consultaDataDe);de.setHours(0,0,0,0);results=results.filter(c=>new Date(c.dataFechamento)>=de);}
+          if(consultaDataAte){const ate=new Date(consultaDataAte);ate.setHours(23,59,59,999);results=results.filter(c=>new Date(c.dataFechamento)<=ate);}
+          if(consultaStatus!=="todos")results=results.filter(c=>c.status===consultaStatus);
+          // Enrich with processo info
+          const enriched=results.map(c=>{const proc=procs.find(p=>p.clienteId===c.id);return{...c,proc};});
+          let finalResults=enriched;
+          if(consultaProcStatus==="em_andamento")finalResults=enriched.filter(e=>e.proc&&e.proc.status==="em_andamento");
+          else if(consultaProcStatus==="vendido")finalResults=enriched.filter(e=>e.proc&&e.proc.status==="vendido");
+          const totalValor=finalResults.reduce((s,c)=>s+c.valor,0);
+          const totalVendido=finalResults.filter(c=>c.proc?.status==="vendido").reduce((s,c)=>s+(c.proc?.valorVendido||0),0);
+          return<>
+          <div style={{display:"flex",gap:16,marginBottom:20,flexWrap:"wrap"}}>
+            <div style={{background:C.bgCard,border:`2px solid ${ac}40`,borderRadius:16,padding:"16px 24px",flex:1,minWidth:140}}><div style={{fontSize:13,color:C.textMuted,textTransform:"uppercase",marginBottom:4}}>Resultados</div><div style={{fontSize:36,fontWeight:900,color:ac,fontFamily:"'Cinzel',serif"}}>{finalResults.length}</div></div>
+            <div style={{background:C.bgCard,border:`2px solid ${C.green}40`,borderRadius:16,padding:"16px 24px",flex:1,minWidth:140}}><div style={{fontSize:13,color:C.textMuted,textTransform:"uppercase",marginBottom:4}}>Valor Total</div><div style={{fontSize:28,fontWeight:900,color:C.green,fontFamily:"'Cinzel',serif"}}>{fB(totalValor)}</div></div>
+            {totalVendido>0&&<div style={{background:`${C.green}10`,border:`2px solid ${C.green}40`,borderRadius:16,padding:"16px 24px",flex:1,minWidth:140}}><div style={{fontSize:13,color:C.green,textTransform:"uppercase",marginBottom:4,fontWeight:700}}>Vendidos</div><div style={{fontSize:28,fontWeight:900,color:C.green,fontFamily:"'Cinzel',serif"}}>{fB(totalVendido)}</div></div>}
+          </div>
+          <div style={{background:C.bgCard,border:`2px solid ${C.border}`,borderRadius:20,overflow:"auto"}}>
+            <div style={{display:"grid",gridTemplateColumns:"1.5fr 1fr .7fr .7fr .7fr 130px 100px 100px",padding:"14px 20px",borderBottom:`2px solid ${C.border}`,fontSize:12,color:C.textMuted,fontWeight:700,textTransform:"uppercase",minWidth:1000}}><div>Cliente</div><div>CPF</div><div>Produto</div><div>Closer</div><div>Valor</div><div style={{textAlign:"center"}}>Fechamento</div><div style={{textAlign:"center"}}>Status</div><div style={{textAlign:"center"}}>Processo</div></div>
+            {finalResults.length===0?<div style={{padding:40,textAlign:"center",color:C.textDim}}>Nenhum resultado encontrado.</div>:finalResults.map(c=>{const stColor=c.status==="qualificado"?C.green:c.status==="desqualificado"?C.red:C.orange;const procSt=c.proc?c.proc.status==="vendido"?{label:"Vendido",color:C.green}:{label:c.proc.tipo==="judicial"?"Judicial":"Adm.",color:C.blue3}:{label:"—",color:C.textDim};return<div key={c.id} className="rh" style={{display:"grid",gridTemplateColumns:"1.5fr 1fr .7fr .7fr .7fr 130px 100px 100px",padding:"14px 20px",alignItems:"center",borderBottom:`1px solid ${C.border}10`,minWidth:1000,fontSize:16}}>
+              <div style={{fontWeight:700}}>{c.nomeCliente}</div>
+              <div style={{fontSize:14,color:C.textMuted}}>{c.cpf}</div>
+              <div style={{fontSize:14}}>{c.produto}</div>
+              <div style={{fontSize:14,color:C.textMuted}}>{c.closerNome}</div>
+              <div style={{fontSize:14,fontWeight:700,color:C.green}}>{fB(c.valor)}{c.proc?.status==="vendido"&&<div style={{fontSize:12,color:C.green,fontWeight:800}}>Venda: {fB(c.proc.valorVendido)}</div>}</div>
+              <div style={{textAlign:"center",fontSize:13,color:C.textMuted}}>{new Date(c.dataFechamento).toLocaleDateString("pt-BR")} {new Date(c.dataFechamento).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</div>
+              <div style={{textAlign:"center"}}><span style={{padding:"4px 12px",borderRadius:16,fontSize:12,fontWeight:800,background:`${stColor}20`,color:stColor,textTransform:"capitalize"}}>{c.status}</span></div>
+              <div style={{textAlign:"center"}}><span style={{padding:"4px 12px",borderRadius:16,fontSize:12,fontWeight:800,background:`${procSt.color}20`,color:procSt.color}}>{procSt.label}</span></div>
+            </div>})}
+          </div></>})()}
       </div>}
 
       {/* ═══ CONFIG — add Usuarios section ═══ */}
